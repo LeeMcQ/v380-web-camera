@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>V380 Web Camera</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a2336'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%233b82f6' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%233b82f6'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <div>
+          <h1>V380 Web Camera</h1>
+          <p class="sub">Self-hosted live view · token auth · auto stop</p>
+        </div>
+      </div>
+      <div class="meta">
+        <span id="modeBadge" class="badge">…</span>
+        <span id="timerBadge" class="badge badge-muted">—</span>
+      </div>
+    </header>
+
+    <section id="loginPanel" class="card login hidden">
+      <h2>Sign in</h2>
+      <p>Enter the server <code>ACCESS_TOKEN</code>. It is stored as an HTTP-only cookie — camera credentials never leave the server.</p>
+      <form id="loginForm" class="login-form">
+        <input id="tokenInput" type="password" name="token" autocomplete="current-password" placeholder="ACCESS_TOKEN" required />
+        <button type="submit" class="btn primary">Continue</button>
+      </form>
+      <p id="loginError" class="error hidden"></p>
+    </section>
+
+    <main id="mainPanel" class="hidden">
+      <section class="viewer card">
+        <div class="stage">
+          <img id="live" alt="Live camera feed" />
+          <div id="overlay" class="overlay">
+            <div class="overlay-inner">
+              <strong id="overlayTitle">Connecting…</strong>
+              <p id="overlayText">Starting live session</p>
+              <button id="reconnectBtn" type="button" class="btn primary">Refresh / Reconnect</button>
+            </div>
+          </div>
+        </div>
+        <div class="viewer-actions">
+          <button id="startBtn" type="button" class="btn primary">Start live (2 min)</button>
+          <button id="stopBtn" type="button" class="btn">Stop</button>
+          <button id="snapBtn" type="button" class="btn">Snapshot</button>
+          <button id="logoutBtn" type="button" class="btn ghost">Log out</button>
+        </div>
+      </section>
+
+      <section class="controls card">
+        <h2>PTZ</h2>
+        <div class="ptz" role="group" aria-label="Pan tilt controls">
+          <button class="btn ptz-btn" data-ptz="up" aria-label="Tilt up">▲</button>
+          <div class="ptz-mid">
+            <button class="btn ptz-btn" data-ptz="left" aria-label="Pan left">◀</button>
+            <button class="btn ptz-btn stop" data-ptz="stop" aria-label="Stop">■</button>
+            <button class="btn ptz-btn" data-ptz="right" aria-label="Pan right">▶</button>
+          </div>
+          <button class="btn ptz-btn" data-ptz="down" aria-label="Tilt down">▼</button>
+        </div>
+
+        <h2>Extras</h2>
+        <div class="extras">
+          <button class="btn" data-ctrl="light/on">Light on</button>
+          <button class="btn" data-ctrl="light/off">Light off</button>
+          <button class="btn" data-ctrl="light/auto">Light auto</button>
+          <button class="btn" data-ctrl="ir/on">IR on</button>
+          <button class="btn" data-ctrl="ir/off">IR off</button>
+          <button class="btn" data-ctrl="flip">Flip</button>
+        </div>
+        <p id="statusLine" class="status">Ready</p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>Stream hard-stops after <strong id="timeoutLabel">120</strong>s</span>
+      <a href="/health" target="_blank" rel="noopener">/health</a>
+    </footer>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

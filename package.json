@@ -1,0 +1,20 @@
+{
+  "name": "v380-web-camera",
+  "version": "1.0.0",
+  "description": "Self-hosted V380 camera web UI with live MJPEG, PTZ, and token auth",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "jpeg-js": "^0.4.4"
+  }
+}

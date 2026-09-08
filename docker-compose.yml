@@ -1,0 +1,49 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: v380-web-camera
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: "3000"
+      MOCK_CAMERA: "${MOCK_CAMERA:-1}"
+      DECODER_URL: "${DECODER_URL:-http://v380decoder:8080}"
+      ACCESS_TOKEN: "${ACCESS_TOKEN:-change-me}"
+      STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC:-120}"
+      DEVICE_ID: "${DEVICE_ID:-89370567}"
+      CAMERA_USERNAME: "${CAMERA_USERNAME:-5Hw51JLd27}"
+      CAMERA_PASSWORD: "${CAMERA_PASSWORD:-}"
+      SOURCE: "${SOURCE:-cloud}"
+    restart: unless-stopped
+    networks:
+      - v380net
+
+  # Optional real-camera bridge. Enable:
+  #   MOCK_CAMERA=0 CAMERA_PASSWORD=... docker compose --profile real up --build
+  # Image built from https://github.com/PyanSofyan/V380Decoder
+  v380decoder:
+    profiles: ["real"]
+    image: v380decoder:local
+    build:
+      context: https://github.com/PyanSofyan/V380Decoder.git
+      dockerfile: Dockerfile
+    container_name: v380decoder
+    command:
+      - "--id=${DEVICE_ID:-89370567}"
+      - "--username=${CAMERA_USERNAME:-5Hw51JLd27}"
+      - "--password=${CAMERA_PASSWORD}"
+      - "--source=${SOURCE:-cloud}"
+      - "--enable-api"
+      - "--enable-mjpeg"
+      - "--http-port=8080"
+    expose:
+      - "8080"
+    restart: unless-stopped
+    networks:
+      - v380net
+
+networks:
+  v380net:
+    driver: bridge
