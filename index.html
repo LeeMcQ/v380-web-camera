@@ -386,23 +386,6 @@ curl.exe -s -H "Authorization: Bearer YOUR_TOKEN" http://127.0.0.1:8090/api/sess
     </ul>
   </section>
 
-
-  <details class="card alt-os" id="alternative">
-    <summary style="cursor:pointer;font-weight:600">Alternative: Linux / macOS (secondary — not the main path)</summary>
-    <div style="margin-top:.75rem">
-      <p class="hint">Primary path is Windows PowerShell above. Use these only if installing on Linux/macOS.</p>
-      <label class="cmd">Preflight</label>
-      <pre>curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.sh | bash -s -- --before
-ss -ltn | grep -E ':(8081|8090|18080|18554)' || true</pre>
-      <label class="cmd">Install</label>
-      <pre>curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash</pre>
-      <label class="cmd">Firewall (ufw) + postflight</label>
-      <pre>sudo ufw allow 8090/tcp comment 'v380-web-camera'
-bash ~/v380-web-camera/scripts/safety-check.sh --after
-curl -s http://127.0.0.1:8090/health</pre>
-    </div>
-  </details>
-
   <section class="card alt">
     <h2>Ports (Grafana-safe)</h2>
     <table>
@@ -443,6 +426,21 @@ curl -s http://127.0.0.1:8090/health</pre>
       <li><strong>120s stream timeout</strong> (<code>STREAM_TIMEOUT_SEC</code>) hard-stops MJPEG; the UI reconnects.</li>
     </ul>
   </section>
+
+  <section class="card alt-os" id="alternative">
+    <h2>Alternative — Linux / macOS</h2>
+    <p class="hint">Primary path is Windows PowerShell above. Use these only if installing on Linux/macOS.</p>
+    <label class="cmd">Preflight</label>
+    <pre>curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.sh | bash -s -- --before
+ss -ltn | grep -E ':(8081|8090|18080|18554)' || true</pre>
+    <label class="cmd">Install</label>
+    <pre>curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash</pre>
+    <label class="cmd">Firewall (ufw) + postflight</label>
+    <pre>sudo ufw allow 8090/tcp comment 'v380-web-camera'
+bash ~/v380-web-camera/scripts/safety-check.sh --after
+curl -s http://127.0.0.1:8090/health</pre>
+  </section>
+
 
   <footer>
     MIT License · Source: <a href="https://github.com/LeeMcQ/v380-web-camera">github.com/LeeMcQ/v380-web-camera</a>

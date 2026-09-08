@@ -127,17 +127,6 @@ Full copy-paste guide: GitHub Pages (`index.html`).
 - **8090 closed from outside** — Windows Defender Firewall inbound TCP 8090
 - **Re-run installer** — easy-install.ps1 is idempotent and safe
 
-<details>
-<summary>Alternative: Linux / macOS (secondary)</summary>
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.sh | bash -s -- --before
-curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash
-bash scripts/safety-check.sh --after
-```
-
-</details>
-
 ## Features
 
 - Mobile-friendly SPA
@@ -179,18 +168,29 @@ See `.env.example` for `ACCESS_TOKEN` (replace `change-me` before exposing), `PO
 
 ## Smoke test
 
-```bash
-ACCESS_TOKEN=change-me node scripts/smoke-test.js
+```powershell
+$env:ACCESS_TOKEN = "change-me"
+node scripts/smoke-test.js
 ```
 
 ## Security
 
 - Never commit `.env` / passwords / real tokens
 - Prefer HttpOnly cookie or Bearer over durable `?token=` query links
-- Firewall **8090** only as needed; HTTPS if public
+- Firewall **8090** only as needed (`New-NetFirewallRule`); HTTPS if public
 - Strong unique `ACCESS_TOKEN`; rotate if leaked
 - Empty / `change-me` token → loud warning and bind `127.0.0.1` (override with `BIND_HOST` / `ALLOW_INSECURE_BIND` only when intentional)
 - Live MJPEG hard-stops after **120s**
+
+## Alternative — Linux / macOS
+
+Secondary path only. Prefer the Windows PowerShell guide above.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.sh | bash -s -- --before
+curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash
+bash ~/v380-web-camera/scripts/safety-check.sh --after
+```
 
 ## License
 
