@@ -1,6 +1,17 @@
 node_modules/
 .env
+.env.local
+.env.*.local
+*.pem
+*.key
+.easy-install.pid
 *.log
+v380-web-camera.log
 .DS_Store
 dist/
 coverage/
+scripts/_build_scripts.py
+scripts/_ei_part*.txt
+*.src
+*_build_scripts.py
+_ei_part*.txt
