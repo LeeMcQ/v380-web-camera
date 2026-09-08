@@ -9,6 +9,7 @@ services:
       - "0.0.0.0:${PORT:-8090}:3000"
     environment:
       PORT: "3000"
+      BIND_HOST: "0.0.0.0"
       MOCK_CAMERA: "${MOCK_CAMERA:-0}"
       # Inside the compose network the decoder listens on 8080
       DECODER_URL: "${DECODER_URL:-http://v380decoder:8080}"

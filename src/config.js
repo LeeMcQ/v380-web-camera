@@ -5,9 +5,14 @@ function bool(v, fallback = false) {
   return ['1', 'true', 'yes', 'on'].includes(String(v).toLowerCase());
 }
 
+const accessToken = process.env.ACCESS_TOKEN || '';
+const weakToken =
+  !accessToken || accessToken === 'change-me';
+
 const config = {
   port: Number(process.env.PORT || 8090),
-  accessToken: process.env.ACCESS_TOKEN || '',
+  accessToken,
+  weakToken,
   streamTimeoutSec: Number(process.env.STREAM_TIMEOUT_SEC || 120),
   mockCamera: bool(process.env.MOCK_CAMERA, true),
   decoderUrl: (process.env.DECODER_URL || 'http://v380decoder:8080').replace(/\/$/, ''),
@@ -18,7 +23,23 @@ const config = {
   cameraIp: process.env.CAMERA_IP || '',
   cameraPort: process.env.CAMERA_PORT || '8800',
   trustProxy: bool(process.env.TRUST_PROXY, false),
+  allowInsecureBind: bool(process.env.ALLOW_INSECURE_BIND, false),
 };
+
+/**
+ * Bind host:
+ * - Explicit BIND_HOST always wins.
+ * - If ACCESS_TOKEN is empty or "change-me", default to 127.0.0.1 unless
+ *   ALLOW_INSECURE_BIND=1 (then 0.0.0.0).
+ * - Otherwise listen on 0.0.0.0.
+ */
+if (process.env.BIND_HOST) {
+  config.bindHost = process.env.BIND_HOST;
+} else if (weakToken && !config.allowInsecureBind) {
+  config.bindHost = '127.0.0.1';
+} else {
+  config.bindHost = '0.0.0.0';
+}
 
 /** Real mode when not mocking and a camera password is present. */
 config.useRealCamera = !config.mockCamera && Boolean(config.cameraPassword);

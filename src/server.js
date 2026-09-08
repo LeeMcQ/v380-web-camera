@@ -167,15 +167,31 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-if (!config.accessToken) {
-  console.warn(
-    '[warn] ACCESS_TOKEN is empty — authenticated routes will return 500 until it is set.'
-  );
+if (config.weakToken) {
+  const reason = !config.accessToken
+    ? 'ACCESS_TOKEN is empty'
+    : 'ACCESS_TOKEN is still the default "change-me"';
+  console.error('');
+  console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  console.error(`!!! SECURITY: ${reason}`);
+  console.error('!!! Set a strong unique ACCESS_TOKEN in .env before exposing');
+  console.error('!!! this UI. Prefer HttpOnly cookie (POST /api/login) or');
+  console.error('!!! Authorization: Bearer — avoid long-lived ?token= links.');
+  if (!config.accessToken) {
+    console.error('!!! Authenticated routes will return 500 until a token is set.');
+  }
+  if (config.bindHost === '127.0.0.1') {
+    console.error('!!! Refusing non-localhost bind; listening on 127.0.0.1 only.');
+    console.error('!!! To override (not recommended): BIND_HOST=0.0.0.0 or');
+    console.error('!!! ALLOW_INSECURE_BIND=1 after setting a real ACCESS_TOKEN.');
+  }
+  console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+  console.error('');
 }
 
-app.listen(config.port, '0.0.0.0', () => {
+app.listen(config.port, config.bindHost, () => {
   console.log(
-    `v380-web-camera listening on :${config.port} mode=${
+    `v380-web-camera listening on ${config.bindHost}:${config.port} mode=${
       config.useRealCamera ? 'real' : 'mock'
     } timeout=${config.streamTimeoutSec}s`
   );

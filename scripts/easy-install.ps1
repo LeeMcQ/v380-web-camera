@@ -124,8 +124,10 @@ function Invoke-Preflight {
   $script:GrafanaPre = Probe-Grafana
   if ($script:GrafanaPre -like "OK|*") {
     Write-Host "OK Grafana health - $($script:GrafanaPre)" -ForegroundColor Green
+    Set-Content (Join-Path $env:USERPROFILE ".v380-web-camera\grafana-before.state") "up"
   } else {
     Write-Warn "Grafana /api/health not reachable on :$GrafanaPort (recorded; install continues)"
+    Set-Content (Join-Path $env:USERPROFILE ".v380-web-camera\grafana-before.state") "down"
   }
 
   if ($busy) {
@@ -196,42 +198,9 @@ if (-not $UseDocker) {
 }
 
 
-function Test-PortInUse([int]$Port) {
-  try {
-    $c = Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue
-    return [bool]$c
-  } catch { return $false }
-}
-
-function Test-GrafanaHealth {
-  foreach ($u in @(
-    "http://127.0.0.1:$GrafanaPort/api/health",
-    "https://127.0.0.1:$GrafanaPort/api/health"
-  )) {
-    try {
-      $r = Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 4
-      if ($r.StatusCode -eq 200) { return $true }
-    } catch { }
-  }
-  return $false
-}
-
-Write-Host "Preflight (never touches Grafana :$GrafanaPort)" -ForegroundColor Cyan
-foreach ($p in @([int]$WebPort, [int]$DecoderHttpPort, [int]$DecoderRtspPort)) {
-  if (Test-PortInUse $p) { Write-Die "Port $p is in use — free it or set PORT / DECODER_*_PORT (never $GrafanaPort)" }
-  else { Write-Info "Port $p is free" }
-}
-if (Test-PortInUse ([int]$GrafanaPort)) { Write-Info "Port $GrafanaPort in use (expected for Grafana) — untouched" }
-else { Write-Info "Port $GrafanaPort not listening (Grafana may be stopped; still untouched)" }
+# Persist Grafana snapshot for safety-check.ps1 -After
 $stateDir = Join-Path $env:USERPROFILE ".v380-web-camera"
 New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
-if (Test-GrafanaHealth) {
-  Write-Info "Grafana health OK on :$GrafanaPort"
-  Set-Content (Join-Path $stateDir "grafana-before.state") "up"
-} else {
-  Write-Warn "Grafana /api/health not OK — continuing; port $GrafanaPort still untouched"
-  Set-Content (Join-Path $stateDir "grafana-before.state") "down"
-}
 
 Invoke-Preflight
 
@@ -283,6 +252,15 @@ elseif (-not $tokenCur) {
   Set-EnvValue "ACCESS_TOKEN" "change-me"
   Write-Warn "ACCESS_TOKEN left as change-me - set a strong token in .env"
 }
+
+$tokenNow = Get-EnvValue "ACCESS_TOKEN"
+if ($tokenNow -and $tokenNow -ne "change-me") {
+  Set-EnvValue "BIND_HOST" "0.0.0.0"
+} else {
+  Write-Warn "ACCESS_TOKEN is weak - Node mode may bind 127.0.0.1 only until you set a strong token"
+  Set-EnvValue "BIND_HOST" "127.0.0.1"
+}
+if ($UseDocker) { Set-EnvValue "BIND_HOST" "0.0.0.0" }
 
 $cameraPasswordVal = Get-EnvValue "CAMERA_PASSWORD"
 

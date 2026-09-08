@@ -104,7 +104,7 @@ bash scripts/safety-check.sh --before</pre>
 
       <li>
         <h3>Step 3 — One-line install</h3>
-        <p>Prefers Docker Compose; falls back to Node.js ≥ 18. Idempotent (safe to re-run).</p>
+        <p>Prefers Docker Compose; falls back to Node.js ≥ 18. Idempotent (safe to re-run). Secrets are entered only in the terminal prompts — never on this page.</p>
         <label class="cmd">Linux / macOS</label>
         <pre>curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash</pre>
         <label class="cmd">Windows PowerShell</label>
@@ -113,12 +113,12 @@ bash scripts/safety-check.sh --before</pre>
 
       <li>
         <h3>Step 4 — Enter camera password + ACCESS_TOKEN</h3>
-        <p>When prompted:</p>
+        <p>When the installer prompts in the <strong>terminal</strong>:</p>
         <ul class="notes">
           <li><strong>CAMERA_PASSWORD</strong> — V380 camera password (needed for real stream / decoder profile)</li>
           <li><strong>ACCESS_TOKEN</strong> — shared secret for the web UI login (choose a strong unique value)</li>
         </ul>
-        <p>Values are written only to <code>~/v380-web-camera/.env</code> (gitignored). Never commit secrets.</p>
+        <p><strong>Never paste passwords into this website</strong> (or any Pages / docs page). Secrets are written only to <code>~/v380-web-camera/.env</code> on the PC (gitignored). Never commit <code>.env</code>.</p>
       </li>
 
       <li>
@@ -181,12 +181,15 @@ sudo ufw status</pre>
   </section>
 
   <section class="card alt">
-    <h2>Security</h2>
+    <h2>Security checklist</h2>
     <ul class="notes">
-      <li><strong>Never commit <code>.env</code></strong> — passwords / tokens are gitignored.</li>
-      <li>Prefer cookie or Bearer over durable query-string tokens.</li>
-      <li>Expose :8090 only on a trusted network or behind HTTPS / reverse proxy.</li>
-      <li>Use a strong unique <code>ACCESS_TOKEN</code>; rotate if leaked.</li>
+      <li><strong>Firewall:</strong> open inbound <strong>TCP 8090</strong> only as needed; leave Grafana <code>8081</code> alone. Do not expose decoder <code>18080</code> unless required.</li>
+      <li><strong>Strong <code>ACCESS_TOKEN</code></strong> — replace <code>change-me</code> before exposing the UI. Empty / <code>change-me</code> logs a loud startup warning and binds <code>127.0.0.1</code> only (unless you override).</li>
+      <li><strong>Auth:</strong> prefer <strong>HttpOnly cookie</strong> (<code>POST /api/login</code>) or <strong>Bearer</strong>. Discourage long-lived shared links with <code>?token=</code>.</li>
+      <li><strong>HTTPS</strong> if the UI is reachable on the public internet (reverse proxy / TLS).</li>
+      <li><strong>Never commit <code>.env</code></strong> — camera password and tokens stay on the PC only. Never paste secrets into this Pages site.</li>
+      <li><strong>Rotate</strong> <code>ACCESS_TOKEN</code> (and camera password) if a token is leaked.</li>
+      <li><strong>120s stream timeout</strong> (<code>STREAM_TIMEOUT_SEC</code>) hard-stops MJPEG; the UI reconnects.</li>
     </ul>
   </section>
 

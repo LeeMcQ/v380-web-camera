@@ -3,21 +3,22 @@
 const config = require('./config');
 
 /**
- * Accept ACCESS_TOKEN via:
+ * Accept ACCESS_TOKEN via (preferred first):
+ *  - Cookie: access_token=<token>  (HttpOnly from POST /api/login)
  *  - Authorization: Bearer <token>
- *  - ?token=<token> (useful for <img src="/stream.mjpg?token=...">)
- *  - Cookie: access_token=<token>
+ *  - ?token=<token>  (supported for <img src>, but discourage long-lived
+ *    shared links that embed the token in the URL)
  */
 function extractToken(req) {
+  if (req.cookies && req.cookies.access_token) {
+    return req.cookies.access_token;
+  }
   const auth = req.headers.authorization || '';
   if (auth.toLowerCase().startsWith('bearer ')) {
     return auth.slice(7).trim();
   }
   if (req.query && typeof req.query.token === 'string' && req.query.token) {
     return req.query.token;
-  }
-  if (req.cookies && req.cookies.access_token) {
-    return req.cookies.access_token;
   }
   return null;
 }

@@ -323,6 +323,18 @@ elif [[ -z "$CUR_TOKEN" ]]; then
   warn "ACCESS_TOKEN left as change-me — set a strong token in $INSTALL_DIR/.env"
 fi
 
+TOKEN_NOW="$(env_get ACCESS_TOKEN)"
+if [[ -n "$TOKEN_NOW" && "$TOKEN_NOW" != "change-me" ]]; then
+  env_set BIND_HOST "0.0.0.0"
+else
+  warn "ACCESS_TOKEN is weak — Node mode may bind 127.0.0.1 only until you set a strong token"
+  env_set BIND_HOST "127.0.0.1"
+fi
+# Docker published ports require 0.0.0.0 inside the container namespace
+if [[ "$USE_DOCKER" -eq 1 ]]; then
+  env_set BIND_HOST "0.0.0.0"
+fi
+
 CAMERA_PASSWORD_VAL="$(env_get CAMERA_PASSWORD)"
 
 bold "Starting V380 Web Camera (ports ${WEB_PORT} / ${DECODER_HTTP_PORT} / ${DECODER_RTSP_PORT}; Grafana ${GRAFANA_PORT} untouched)"
