@@ -11,7 +11,6 @@ services:
       PORT: "3000"
       BIND_HOST: "0.0.0.0"
       MOCK_CAMERA: "${MOCK_CAMERA:-0}"
-      # Inside the compose network the decoder listens on 8080
       DECODER_URL: "${DECODER_URL:-http://v380decoder:8080}"
       ACCESS_TOKEN: "${ACCESS_TOKEN:-change-me}"
       STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC:-120}"
@@ -23,9 +22,8 @@ services:
     networks:
       - v380net
 
-  # Optional real-camera bridge. Enable:
-  #   MOCK_CAMERA=0 CAMERA_PASSWORD=... docker compose --profile real up --build
-  # Image built from https://github.com/PyanSofyan/V380Decoder
+  # Real-camera bridge (cloud by default — no CAMERA_IP required)
+  # Enable: docker compose --profile real up --build -d
   # Host ports: HTTP 18080, RTSP 18554 (avoids 8080/8081/8554)
   v380decoder:
     profiles: ["real"]
@@ -34,15 +32,25 @@ services:
       context: https://github.com/PyanSofyan/V380Decoder.git
       dockerfile: Dockerfile
     container_name: v380decoder
+    # Force cloud relay unless you set SOURCE=lan and CAMERA_IP in .env
+    entrypoint: ["./V380Decoder"]
     command:
       - "--id=${DEVICE_ID:-89370567}"
       - "--username=${CAMERA_USERNAME:-admin}"
       - "--password=${CAMERA_PASSWORD}"
       - "--source=${SOURCE:-cloud}"
+      - "--output=rtsp"
       - "--enable-api"
       - "--enable-mjpeg"
       - "--http-port=8080"
       - "--rtsp-port=8554"
+    environment:
+      # Make SOURCE visible for debugging; command above is authoritative
+      SOURCE: "${SOURCE:-cloud}"
+      DEVICE_ID: "${DEVICE_ID:-89370567}"
+      CAMERA_USERNAME: "${CAMERA_USERNAME:-admin}"
+      CAMERA_PASSWORD: "${CAMERA_PASSWORD:-}"
+      CAMERA_IP: "${CAMERA_IP:-}"
     ports:
       - "0.0.0.0:${DECODER_HTTP_PORT:-18080}:8080"
       - "0.0.0.0:${DECODER_RTSP_PORT:-18554}:8554"
