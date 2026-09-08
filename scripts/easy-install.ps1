@@ -96,10 +96,10 @@ function Invoke-HttpProbe([string]$Url) {
 
 function Probe-Grafana {
   $urls = @(
-    "https://127.0.0.1:$GrafanaPort/api/health",
-    "http://127.0.0.1:$GrafanaPort/api/health",
-    "https://${PublicHost}:$GrafanaPort/api/health",
-    "http://${PublicHost}:$GrafanaPort/api/health"
+    "https://127.0.0.1:${GrafanaPort}/api/health",
+    "http://127.0.0.1:${GrafanaPort}/api/health",
+    "https://${PublicHost}:${GrafanaPort}/api/health",
+    "http://${PublicHost}:${GrafanaPort}/api/health"
   )
   foreach ($u in $urls) {
     $r = Invoke-HttpProbe $u
@@ -129,7 +129,7 @@ function Invoke-Preflight {
     Write-Host "OK Grafana health - $($script:GrafanaPre)" -ForegroundColor Green
     Set-Content (Join-Path $env:USERPROFILE ".v380-web-camera\grafana-before.state") "up"
   } else {
-    Write-Warn "Grafana /api/health not reachable on :$GrafanaPort (recorded; install continues)"
+    Write-Warn "Grafana /api/health not reachable on :${GrafanaPort} (recorded; install continues)"
     Set-Content (Join-Path $env:USERPROFILE ".v380-web-camera\grafana-before.state") "down"
   }
 
@@ -169,7 +169,7 @@ function Invoke-Postflight {
   Write-Host "Re-run checklist (anytime)" -ForegroundColor Cyan
   Write-Host "  1) powershell -File scripts/safety-check.ps1"
   Write-Host "  2) Get-NetTCPConnection -State Listen | ? LocalPort -in 8081,8090,18080,18554"
-  Write-Host "  3) Probe Grafana http(s)://127.0.0.1:$GrafanaPort/api/health"
+  Write-Host "  3) Probe Grafana http(s)://127.0.0.1:${GrafanaPort}/api/health"
   Write-Host "  4) Invoke-WebRequest http://127.0.0.1:$WebPort/health"
   Write-Host "  5) Open http://${PublicHost}:$WebPort (Grafana stays on $GrafanaPort)"
 
@@ -274,7 +274,7 @@ if ($UseDocker) { Set-EnvValue "BIND_HOST" "0.0.0.0" }
 $cameraPasswordVal = Get-EnvValue "CAMERA_PASSWORD"
 
 Write-Host "Starting V380 Web Camera (ports $WebPort / $DecoderHttpPort / $DecoderRtspPort; Grafana $GrafanaPort untouched)" -ForegroundColor Cyan
-Write-Info "Bind 0.0.0.0 - public URL http://$PublicHost:$WebPort"
+Write-Info "Bind 0.0.0.0 - public URL http://${PublicHost}:${WebPort}"
 
 $env:PORT = "$WebPort"
 $env:DECODER_HTTP_PORT = "$DecoderHttpPort"
@@ -319,11 +319,11 @@ Invoke-Postflight
 
 Write-Host ""
 Write-Host "Done" -ForegroundColor Green
-Write-Host "  Camera UI:  http://$PublicHost:$WebPort"
-Write-Host "  Health:     http://$PublicHost:$WebPort/health"
-Write-Host "  Grafana:    http(s)://$PublicHost:$GrafanaPort  (unchanged)"
+Write-Host "  Camera UI:  http://${PublicHost}:${WebPort}"
+Write-Host "  Health:     http://${PublicHost}:${WebPort}/health"
+Write-Host "  Grafana:    http(s)://${PublicHost}:${GrafanaPort}  (unchanged)"
 Write-Info "Secrets live only in $InstallDir\.env - never commit that file"
 Write-Info "Anytime: powershell -ExecutionPolicy Bypass -File $InstallDir\scripts\safety-check.ps1 -After"
-Write-Info "Firewall (Admin PowerShell) if LAN clients cannot reach :$WebPort:"
+Write-Info "Firewall (Admin PowerShell) if LAN clients cannot reach :${WebPort}:"
 Write-Host "  New-NetFirewallRule -DisplayName 'V380 Web Camera 8090' -Direction Inbound -Protocol TCP -LocalPort $WebPort -Action Allow"
 
