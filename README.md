@@ -1,11 +1,13 @@
-# V380 Web Camera
+# V380 Web Camera — Windows PC install guide
 
-> **GitHub Pages is documentation only.** Live UI is on the PC:
+> **GitHub Pages is documentation only.** Live UI is on the Windows PC:
 > **http://41.74.144.221:8090** — not this Pages site.
 > Grafana stays at **https://41.74.144.221:8081** (untouched).
 
 Self-hosted web UI for a V380 IP camera: live MJPEG, PTZ / light / IR / flip, token auth.
 Camera credentials stay on the server. Clients use `ACCESS_TOKEN` only.
+
+**Primary audience: Windows 10 / 11 PC** (PowerShell). Linux/macOS is secondary.
 
 **Repo:** https://github.com/LeeMcQ/v380-web-camera  
 **Docs (Pages):** https://leemcq.github.io/v380-web-camera/
@@ -20,105 +22,121 @@ Camera credentials stay on the server. Clients use `ACCESS_TOKEN` only.
 | Decoder RTSP | `18554` | Compose `real` profile |
 
 
-## A. Before you start (from nothing)
+## A. Before you start (Windows PC)
 
 **What you end up with:** UI on http://41.74.144.221:8090; optional decoder 18080/18554; Grafana untouched on https://41.74.144.221:8081.
 
-**Have ready:** device ID `89370567`, username `admin`, camera password (terminal only), a strong `ACCESS_TOKEN` you invent (terminal only).
+**Have ready:** device ID `89370567`, username `admin`, camera password (PowerShell only), a strong `ACCESS_TOKEN` you invent (PowerShell only).
 
-**PC:** Linux or Windows on `41.74.144.221`, internet, a terminal.
+**PC:** Windows 10/11 on `41.74.144.221`, internet, PowerShell (Admin only for firewall).
 
-**Software if missing:** prefer Docker + Compose (`sudo apt update && sudo apt install -y docker.io docker-compose-v2` on Ubuntu/Debian), or Git + Node.js ≥ 18. Windows: Docker Desktop or Node LTS from nodejs.org.
+**Software if missing:** prefer Docker Desktop, or Git for Windows + Node.js LTS (≥ 18).
 
-## Port double-check (mandatory)
+## Port double-check (mandatory · PowerShell)
 
 Do this **before** binding and again **after** install. Confirm **8090 is free** before the camera stack binds it, and confirm **8081 is still Grafana**. Live URL **http://41.74.144.221:8090** is valid **only after** install claims that free port.
 
 Outside probe (verified recently): **8081 OPEN** (Grafana healthy); **8090 / 18080 / 3000 / 8080 / 8554** closed/filtered — **8090 is free to claim**.
 
 ### Before install
-```bash
-ss -ltn | grep -E ':(8081|8090|18080|18554)' || true
-curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
-bash scripts/safety-check.sh --before
+```powershell
+Get-NetTCPConnection -LocalPort 8081,8090,18080,18554 -State Listen -ErrorAction SilentlyContinue
+# or: netstat -ano | findstr ":8090 :8081 :18080 :18554"
+curl.exe -sk https://127.0.0.1:8081/api/health
+.\scripts\safety-check.ps1 -Before
 ```
 Expect something on **8081**; expect **nothing** on **8090**.
 
 ### After install
-```bash
-ss -ltn | grep -E ':(8081|8090|18080|18554)' || true
-curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
-curl -s http://127.0.0.1:8090/health
-bash scripts/safety-check.sh --after
+```powershell
+Get-NetTCPConnection -LocalPort 8081,8090,18080,18554 -State Listen -ErrorAction SilentlyContinue
+curl.exe -sk https://127.0.0.1:8081/api/health
+curl.exe -s http://127.0.0.1:8090/health
+.\scripts\safety-check.ps1 -After
 ```
 Expect **8081** still Grafana + **8090** camera. Then open http://41.74.144.221:8090
 
-## Install on PC `41.74.144.221`
+## Install on Windows PC `41.74.144.221`
 
 ### Step 0 — Grafana stays on 8081
 Grafana on `https://41.74.144.221:8081` / port **8081** remains unchanged.
 
-### Step 1 — Open a terminal on 41.74.144.221
-SSH or open a local terminal on the machine with IP `41.74.144.221`.
+### Step 1 — Open PowerShell on the Windows PC
+Start → Windows PowerShell on the machine with IP `41.74.144.221` (not SSH/Linux as the default path).
 
-### Step 2 — Preflight safety-check (--before)
-```bash
-curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.sh | bash -s -- --before
+### Step 2 — Preflight safety-check.ps1 -Before + Port double-check
+```powershell
+irm https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.ps1 | iex
 ```
-Or after clone: `bash scripts/safety-check.sh --before`  
-Windows: `.\scripts\safety-check.ps1 -Before`
+Or after clone: `.\scripts\safety-check.ps1 -Before`
 
-### Step 3 — Easy one-line install
-Linux / macOS:
-```bash
-curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash
-```
-Windows PowerShell:
+### Step 3 — Easy one-line install (PRIMARY)
 ```powershell
 irm https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.ps1 | iex
 ```
 
-### Step 4 — Terminal prompts for CAMERA_PASSWORD + ACCESS_TOKEN
-Enter **CAMERA_PASSWORD** and **ACCESS_TOKEN** in the **terminal** only (stored in `~/v380-web-camera/.env`).  
+### Step 4 — PowerShell prompts for CAMERA_PASSWORD + ACCESS_TOKEN
+Enter **CAMERA_PASSWORD** and **ACCESS_TOKEN** in **PowerShell only** (stored in `%USERPROFILE%\v380-web-camera\.env`).  
 **Never paste passwords into the website / Pages docs.** Never commit `.env`.
 
 ### Step 5 — Optional manual path (if one-liner fails)
-```bash
+```powershell
 git clone https://github.com/LeeMcQ/v380-web-camera.git
 cd v380-web-camera
-cp .env.example .env
-# edit .env in the terminal only — CAMERA_PASSWORD + strong ACCESS_TOKEN
+Copy-Item .env.example .env
+# edit .env on the PC only — CAMERA_PASSWORD + strong ACCESS_TOKEN
 docker compose --profile real up --build -d
 # Or Node: npm install && npm start (decoder must run separately on :18080)
 ```
 
-### Step 6 — Firewall TCP 8090
-Allow inbound **TCP 8090** only as needed. Open **18080** only if decoder HTTP must be reached off-box. Do not alter Grafana `8081`.
+### Step 6 — Windows Defender Firewall TCP 8090
+Admin PowerShell:
+```powershell
+New-NetFirewallRule -DisplayName "v380-web-camera 8090" -Direction Inbound -Protocol TCP -LocalPort 8090 -Action Allow
+```
+Open **18080** only if decoder HTTP must be reached off-box. Do not alter Grafana `8081`.
+```powershell
+New-NetFirewallRule -DisplayName "V380 Web Camera 8090" -Direction Inbound -Protocol TCP -LocalPort 8090 -Action Allow
+```
 
 ### Step 7 — Open live UI and log in
-http://41.74.144.221:8090 — log in with `ACCESS_TOKEN`. Then run **Installation and checks** below (includes `safety-check --after`).
+http://41.74.144.221:8090 — log in with `ACCESS_TOKEN`. Then run **Installation and checks** below (includes `safety-check.ps1 -After`).
 
-## Installation and checks
+## Installation and checks (Windows)
 
-Full verification checklist (pass/fail). Run on the PC after install:
+Full verification checklist (pass/fail). Run in PowerShell on the PC after install:
 
-1. **Ports listening:** `ss -ltn | grep -E ':(8081|8090|18080|18554)'` — expect 8081 + 8090 (and 18080 if real profile). Windows: `netstat -an | findstr "8081 8090 18080 18554"`
-2. **Grafana health still OK:** `curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health`
-3. **Camera `GET /health`:** `curl -s http://127.0.0.1:8090/health` → ok / mode real or mock
-4. **Unauthenticated stream → 401:** `curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8090/stream.mjpg`
+1. **Ports listening:** `Get-NetTCPConnection -LocalPort 8081,8090,18080,18554 -State Listen` — expect 8081 + 8090 (and 18080 if real profile). Fallback: `netstat -ano | findstr ":8090 :8081 :18080 :18554"`
+2. **Grafana health still OK:** `curl.exe -sk https://127.0.0.1:8081/api/health`
+3. **Camera `GET /health`:** `curl.exe -s http://127.0.0.1:8090/health` → ok / mode real or mock
+4. **Unauthenticated stream → 401:** `curl.exe -s -o NUL -w "%{http_code}" http://127.0.0.1:8090/stream.mjpg`
 5. **Authenticated snapshot/session** with `Authorization: Bearer YOUR_TOKEN` only (never paste real tokens into docs)
 6. **Browser:** login at http://41.74.144.221:8090 — live feed, PTZ, ~120s timeout + reconnect
-7. **`bash scripts/safety-check.sh --after`** must pass (non-zero if Grafana died). Windows: `.\scripts\safety-check.ps1 -After`
-8. **Done when:** Grafana healthy on :8081; UI on :8090; `/health` ok; stream 401 without auth; login/feed/PTZ work; safety-check --after exits 0; no secrets in Pages
+7. **`.\scripts\safety-check.ps1 -After`** must pass (non-zero if Grafana died)
+8. **Done when:** Grafana healthy on :8081; UI on :8090; `/health` ok; stream 401 without auth; login/feed/PTZ work; safety-check.ps1 -After exits 0; no secrets in Pages
 
 Full copy-paste guide: GitHub Pages (`index.html`).
 
-## Troubleshooting
+## Troubleshooting (Windows)
 
+- **Docker Desktop not running** — start it, wait for Engine running, re-run installer
+- **Execution policy** — process-scoped Bypass for `.\scripts\…` if needed
 - **Port busy** — do not steal 8081; change `PORT` / decoder ports
 - **Weak token** — empty/`change-me` binds localhost only; set a strong `ACCESS_TOKEN`
 - **No video** — decoder / `CAMERA_PASSWORD` / `MOCK_CAMERA`
-- **Re-run installer** — easy-install is idempotent and safe
+- **8090 closed from outside** — Windows Defender Firewall inbound TCP 8090
+- **Re-run installer** — easy-install.ps1 is idempotent and safe
+
+<details>
+<summary>Alternative: Linux / macOS (secondary)</summary>
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.sh | bash -s -- --before
+curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash
+bash scripts/safety-check.sh --after
+```
+
+</details>
 
 ## Features
 
@@ -131,12 +149,12 @@ Full copy-paste guide: GitHub Pages (`index.html`).
 
 ## Manual setup
 
-```bash
+```powershell
 git clone https://github.com/LeeMcQ/v380-web-camera.git
 cd v380-web-camera
-cp .env.example .env
+Copy-Item .env.example .env
 # set ACCESS_TOKEN + CAMERA_PASSWORD locally in .env; never commit .env
-bash scripts/easy-install.sh
+.\scripts\easy-install.ps1
 ```
 
 Compose profile `real` publishes web **8090**, decoder HTTP **18080**, RTSP **18554**.

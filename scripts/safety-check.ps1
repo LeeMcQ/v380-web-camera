@@ -1,14 +1,24 @@
-# V380 Web Camera + Grafana coexistence safety check
+# V380 Web Camera + Grafana coexistence safety check (Windows PowerShell)
 # Usage:
-#   powershell -File scripts/safety-check.ps1
-#   powershell -File scripts/safety-check.ps1 -Before
-#   powershell -File scripts/safety-check.ps1 -After
+#   .\scripts\safety-check.ps1
+#   .\scripts\safety-check.ps1 -Before
+#   .\scripts\safety-check.ps1 -After
+# One-shot (no clone yet):
+#   irm https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/safety-check.ps1 -OutFile $env:TEMP\v380-safety-check.ps1
+#   powershell -ExecutionPolicy Bypass -File $env:TEMP\v380-safety-check.ps1 -Before
+# Or:  $env:SAFETY_MODE='before'; irm .../safety-check.ps1 | iex
 param(
   [switch]$Before,
   [switch]$After
 )
 
 $ErrorActionPreference = "Continue"
+
+# Support remote one-shot via env when piped through iex (params are unavailable)
+if (-not $Before -and -not $After) {
+  if ($env:SAFETY_MODE -eq "before") { $Before = $true }
+  elseif ($env:SAFETY_MODE -eq "after") { $After = $true }
+}
 
 $PublicHost = if ($env:PUBLIC_HOST) { $env:PUBLIC_HOST } else { "41.74.144.221" }
 $WebPort = if ($env:PORT) { [int]$env:PORT } else { 8090 }
@@ -23,7 +33,16 @@ if ($After) { $Mode = "after" }
 function Get-PortListeners([int]$Port) {
   try {
     return @(Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue)
-  } catch { return @() }
+  } catch {
+    # Fallback when Get-NetTCPConnection is unavailable (older Windows / no admin)
+    try {
+      $hits = netstat -ano | Select-String -Pattern ":$Port\s+.*LISTENING"
+      if ($hits) {
+        return @([pscustomobject]@{ LocalAddress = "(netstat)"; OwningProcess = "?" })
+      }
+    } catch {}
+    return @()
+  }
 }
 
 function Test-PortListening([int]$Port) {
@@ -39,7 +58,9 @@ function Invoke-HttpProbe([string]$Url) {
     return @{ Code = [int]$resp.StatusCode; Body = [string]$resp.Content }
   } catch {
     $code = 0
-    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    if ($_.Exception.Response) {
+      try { $code = [int]$_.Exception.Response.StatusCode } catch { $code = 0 }
+    }
     return @{ Code = $code; Body = "" }
   }
 }
@@ -71,6 +92,8 @@ function Test-CameraHealth {
 New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
 
 Write-Host "Port summary (8081 Grafana / 8090 camera / 18080 decoder HTTP / 18554 RTSP)" -ForegroundColor Cyan
+Write-Host "Tip: Get-NetTCPConnection -LocalPort 8081,8090,18080,18554 -State Listen"
+Write-Host "     netstat -ano | findstr `":8090 :8081 :18080 :18554`""
 foreach ($p in @($GrafanaPort, $WebPort, $DecoderHttpPort, $DecoderRtspPort)) {
   Write-Host ""
   Write-Host "> Port $p"

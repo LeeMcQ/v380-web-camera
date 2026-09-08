@@ -1,5 +1,8 @@
 # V380 Web Camera - easy installer (Windows PowerShell)
-# irm https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.ps1 | iex
+# Primary one-liner (PowerShell on the Windows PC):
+#   irm https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.ps1 | iex
+# If scripts are blocked: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+# Requires: Docker Desktop (preferred) OR Node.js LTS + Git for Windows
 $ErrorActionPreference = "Stop"
 
 $RepoUrl = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/LeeMcQ/v380-web-camera.git" }
@@ -188,13 +191,14 @@ if (Test-Command "docker") {
 
 
 if (-not $UseDocker) {
-  if (-not (Test-Command "node")) { Write-Die "Node.js >= 18 required." }
+  Write-Warn "Docker Desktop not detected or not running - falling back to Node.js. Start Docker Desktop for the preferred Compose path."
+  if (-not (Test-Command "node")) { Write-Die "Node.js >= 18 required (or install/start Docker Desktop). Get Node LTS from https://nodejs.org/" }
   if (-not (Test-Command "npm")) { Write-Die "npm is required." }
   $major = [int]((node -p "process.versions.node.split('.')[0]").Trim())
   if ($major -lt 18) { Write-Die "Node.js >= 18 required." }
   Write-Info "Using Node.js $(node -v)"
 } else {
-  Write-Info "Using Docker Compose"
+  Write-Info "Using Docker Compose (Docker Desktop)"
 }
 
 
@@ -203,6 +207,11 @@ $stateDir = Join-Path $env:USERPROFILE ".v380-web-camera"
 New-Item -ItemType Directory -Force -Path $stateDir | Out-Null
 
 Invoke-Preflight
+
+# Git is required to clone / update
+if (-not (Test-Command "git")) {
+  Write-Die "Git for Windows is required. Install from https://git-scm.com/download/win then re-open PowerShell."
+}
 
 # Repo sync
 if (Test-Path (Join-Path $InstallDir ".git")) {
@@ -314,5 +323,7 @@ Write-Host "  Camera UI:  http://$PublicHost:$WebPort"
 Write-Host "  Health:     http://$PublicHost:$WebPort/health"
 Write-Host "  Grafana:    http(s)://$PublicHost:$GrafanaPort  (unchanged)"
 Write-Info "Secrets live only in $InstallDir\.env - never commit that file"
-Write-Info "Anytime: powershell -File $InstallDir\scripts\safety-check.ps1"
+Write-Info "Anytime: powershell -ExecutionPolicy Bypass -File $InstallDir\scripts\safety-check.ps1 -After"
+Write-Info "Firewall (Admin PowerShell) if LAN clients cannot reach :$WebPort:"
+Write-Host "  New-NetFirewallRule -DisplayName 'V380 Web Camera 8090' -Direction Inbound -Protocol TCP -LocalPort $WebPort -Action Allow"
 
