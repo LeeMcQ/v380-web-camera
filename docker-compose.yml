@@ -13,7 +13,7 @@ services:
       ACCESS_TOKEN: "${ACCESS_TOKEN:-change-me}"
       STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC:-120}"
       DEVICE_ID: "${DEVICE_ID:-89370567}"
-      CAMERA_USERNAME: "${CAMERA_USERNAME:-5Hw51JLd27}"
+      CAMERA_USERNAME: "${CAMERA_USERNAME:-admin}"
       CAMERA_PASSWORD: "${CAMERA_PASSWORD:-}"
       SOURCE: "${SOURCE:-cloud}"
     restart: unless-stopped
@@ -32,7 +32,7 @@ services:
     container_name: v380decoder
     command:
       - "--id=${DEVICE_ID:-89370567}"
-      - "--username=${CAMERA_USERNAME:-5Hw51JLd27}"
+      - "--username=${CAMERA_USERNAME:-admin}"
       - "--password=${CAMERA_PASSWORD}"
       - "--source=${SOURCE:-cloud}"
       - "--enable-api"

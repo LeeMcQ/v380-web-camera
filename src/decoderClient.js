@@ -88,7 +88,8 @@ async function snapshot() {
  * Proxy an upstream MJPEG stream to the client, enforcing a hard timeout.
  */
 function proxyMjpeg(clientRes, { timeoutMs }) {
-  const target = new URL('/stream.mjpg', config.decoderUrl);
+  // V380Decoder serves MJPEG at /mjpeg (not /stream.mjpg)
+  const target = new URL('/mjpeg', config.decoderUrl);
   const lib = target.protocol === 'https:' ? https : http;
 
   const upstream = lib.get(
