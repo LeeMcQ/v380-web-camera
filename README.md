@@ -19,6 +19,30 @@ Camera credentials stay on the server. Clients use `ACCESS_TOKEN` only.
 | Decoder HTTP | `18080` | Compose `real` profile |
 | Decoder RTSP | `18554` | Compose `real` profile |
 
+
+## Port double-check (mandatory)
+
+Do this **before** binding and again **after** install. Confirm **8090 is free** before the camera stack binds it, and confirm **8081 is still Grafana**. Live URL **http://41.74.144.221:8090** is valid **only after** install claims that free port.
+
+Outside probe (verified recently): **8081 OPEN** (Grafana healthy); **8090 / 18080 / 3000 / 8080 / 8554** closed/filtered — **8090 is free to claim**.
+
+### Before install
+```bash
+ss -ltn | grep -E ':(8081|8090|18080|18554)' || true
+curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
+bash scripts/safety-check.sh --before
+```
+Expect something on **8081**; expect **nothing** on **8090**.
+
+### After install
+```bash
+ss -ltn | grep -E ':(8081|8090|18080|18554)' || true
+curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
+curl -s http://127.0.0.1:8090/health
+bash scripts/safety-check.sh --after
+```
+Expect **8081** still Grafana + **8090** camera. Then open http://41.74.144.221:8090
+
 ## Install on PC `41.74.144.221`
 
 ### Step 0 — What stays as-is
@@ -61,6 +85,20 @@ Exits non-zero if Grafana was up before and is down after.
 
 ### Step 7 — Firewall
 Allow inbound **TCP 8090** only as needed. Open **18080** only if decoder HTTP must be reached off-box. Do not alter Grafana `8081`.
+
+## Installation and checks
+
+After install, verify:
+
+1. Ports: `ss -ltn | grep -E ':(8081|8090|18080|18554)'` — 8081 + 8090 (and 18080 if real)
+2. Grafana `/api/health` still OK on 8081
+3. Camera `GET /health` on 8090
+4. Unauthenticated `/stream.mjpg` → 401
+5. Authenticated snapshot/session with `Authorization: Bearer YOUR_TOKEN` (never paste real tokens into docs)
+6. Browser: login at http://41.74.144.221:8090, live feed, PTZ, ~120s timeout + reconnect
+7. `bash scripts/safety-check.sh --after` passes
+
+Full copy-paste checklist: GitHub Pages guide (`index.html`).
 
 ## Features
 

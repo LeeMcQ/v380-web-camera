@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Step-by-step install for V380 Web Camera on PC 41.74.144.221. GitHub Pages is docs only — live UI is :8090." />
-  <title>V380 Web Camera — PC install guide</title>
+  <meta name="description" content="Nothing-to-done guide for V380 Web Camera on 41.74.144.221. Mandatory Port double-check for free :8090; Grafana stays on 8081. Pages is docs only." />
+  <title>V380 Web Camera — Installation and checks</title>
   <style>
-    :root{--bg:#0b0f14;--panel:#121821;--panel-2:#182231;--border:#243044;--text:#e8eef7;--muted:#9aacbf;--accent:#3dd6c6;--warn:#ffb020;--warn-bg:rgba(255,176,32,.12);--ok:#6ee7a8;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    :root{--bg:#0b0f14;--panel:#121821;--panel-2:#182231;--border:#243044;--text:#e8eef7;--muted:#9aacbf;--accent:#3dd6c6;--warn:#ffb020;--warn-bg:rgba(255,176,32,.12);--ok:#6ee7a8;--danger:#ff7b72;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
     *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans)}
     body{min-height:100vh;background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(91,140,255,.18),transparent),radial-gradient(ellipse 60% 40% at 100% 0%,rgba(61,214,198,.08),transparent)}
     a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-    .wrap{max-width:860px;margin:0 auto;padding:1.5rem 1.1rem 3.5rem}
+    .wrap{max-width:880px;margin:0 auto;padding:1.5rem 1.1rem 3.5rem}
     header{margin-bottom:1.25rem}
     .badge{display:inline-block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(61,214,198,.35);background:rgba(61,214,198,.08);padding:.25rem .6rem;border-radius:999px;margin-bottom:.75rem}
     h1{font-size:clamp(1.55rem,4vw,2.2rem);margin:0 0 .5rem;line-height:1.2}
@@ -47,34 +47,152 @@
     .btn:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
     .btn.primary{background:linear-gradient(135deg,rgba(61,214,198,.2),rgba(91,140,255,.2));border-color:rgba(61,214,198,.45)}
     .live{display:inline-block;margin-top:.5rem;padding:.35rem .7rem;border-radius:8px;background:rgba(110,231,168,.1);border:1px solid rgba(110,231,168,.35);color:var(--ok);font-weight:600;font-size:.92rem}
-    @media (max-width:520px){ol.steps > li{padding-left:3.1rem}pre{font-size:.78rem}}
+    @media (max-width:520px){ol.steps > li,ol.check > li{padding-left:3.1rem}pre{font-size:.78rem}}
+
+    .toc{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 0}
+    .toc a{font-size:.85rem;padding:.35rem .7rem;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--muted);text-decoration:none}
+    .toc a:hover{border-color:var(--accent);color:var(--accent)}
+    ol.check{list-style:none;margin:0;padding:0;counter-reset:chk}
+    ol.check > li{counter-increment:chk;position:relative;margin:0 0 1rem;padding:1rem 1rem 1rem 3.4rem;background:var(--panel-2);border:1px solid var(--border);border-radius:12px}
+    ol.check > li::before{content:counter(chk);position:absolute;left:.85rem;top:1rem;width:1.85rem;height:1.85rem;border-radius:999px;background:rgba(110,231,168,.12);border:1px solid rgba(110,231,168,.4);color:var(--ok);font-weight:700;font-size:.95rem;display:flex;align-items:center;justify-content:center}
+    ol.check h3{margin:0 0 .35rem;font-size:1.02rem}
+    ol.check p{margin:.25rem 0;color:var(--muted);line-height:1.5}
+    .passfail{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:.15rem .45rem;border-radius:6px;margin-left:.35rem}
+    .passfail.pass{color:var(--ok);border:1px solid rgba(110,231,168,.4);background:rgba(110,231,168,.08)}
+    .passfail.fail{color:#ff7b72;border:1px solid rgba(255,123,114,.4);background:rgba(255,123,114,.08)}
+    .card.checks{border-color:rgba(110,231,168,.4);box-shadow:0 0 0 1px rgba(110,231,168,.1)}
+    ul.ready{margin:.5rem 0 0;padding-left:1.15rem;color:var(--muted);line-height:1.55}
+    ul.ready li{margin:.4rem 0}ul.ready strong{color:var(--text)}
+    .done{margin-top:.75rem;padding:.85rem 1rem;border-radius:10px;border:1px solid rgba(110,231,168,.35);background:rgba(110,231,168,.08)}
+    .done strong{color:var(--ok)}
+    h3{font-size:1.05rem;margin:0 0 .35rem}
+
+    .card.portcheck{border-color:rgba(91,140,255,.45);box-shadow:0 0 0 1px rgba(91,140,255,.12)}
+    .okbox{margin:1rem 0;padding:.9rem 1.1rem;border-radius:12px;border:1px solid rgba(110,231,168,.4);background:rgba(110,231,168,.08)}
+    .okbox strong{color:var(--ok);display:block;margin-bottom:.35rem}
+    .okbox p,.okbox ul{margin:.35rem 0 0;color:var(--text);line-height:1.5}
+
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="badge">GitHub Pages · documentation only</div>
-    <h1>V380 Web Camera</h1>
-    <p class="lead">Self-hosted web UI for a V380 IP camera on <strong>41.74.144.221</strong>: live MJPEG, PTZ / light / IR / flip, token auth. Camera credentials stay on the PC; browsers only use <code>ACCESS_TOKEN</code>.</p>
+    <h1>V380 Web Camera — Installation and checks</h1>
+    <p class="lead">Complete <strong>nothing → done</strong> guide for hosting the camera stack on <strong>41.74.144.221</strong>. Live MJPEG, PTZ / light / IR / flip, token auth. Camera credentials stay on the PC; browsers only use <code>ACCESS_TOKEN</code>.</p>
     <div class="links">
       <a class="btn primary" href="https://github.com/LeeMcQ/v380-web-camera">View on GitHub</a>
       <a class="btn" href="http://41.74.144.221:8090">Live UI :8090</a>
       <a class="btn" href="https://github.com/LeeMcQ/v380-web-camera#readme">README</a>
     </div>
+
+    <nav class="toc" aria-label="Guide sections">
+      <a href="#before">A. Before you start</a>
+      <a href="#port-double-check">Port double-check</a>
+      <a href="#install">B. Installation</a>
+      <a href="#checks">C. Installation and checks</a>
+      <a href="#troubleshoot">D. Troubleshooting</a>
+      <a href="#security">E. Security</a>
+    </nav>
   </header>
 
   <aside class="warn" role="alert">
     <strong>⚠ This Pages URL is docs only — live UI is :8090</strong>
-    <p>There is <em>no</em> live stream on GitHub Pages. After install, open <a href="http://41.74.144.221:8090"><code>http://41.74.144.221:8090</code></a>. Grafana stays on <code>https://41.74.144.221:8081</code> and is never touched.</p>
+    <p>There is <em>no</em> live stream on GitHub Pages. The live URL is <a href="http://41.74.144.221:8090"><code>http://41.74.144.221:8090</code></a> <strong>only after install claims that free port</strong>. Grafana stays on <code>https://41.74.144.221:8081</code> and is never touched. <strong>Never paste real passwords or tokens into this website.</strong></p>
   </aside>
 
-  <section class="card install">
-    <h2>Step-by-step install (this PC)</h2>
+
+
+  <aside class="okbox" role="status">
+    <strong>Outside probe (verified recently)</strong>
+    <ul class="notes">
+      <li><strong>8081 OPEN</strong> — Grafana healthy (keep it)</li>
+      <li><strong>8090 / 18080 / 3000 / 8080 / 8554</strong> closed or filtered — <strong>8090 is free to claim</strong></li>
+    </ul>
+    <p>Still run the <a href="#port-double-check">Port double-check</a> on the PC before and after install.</p>
+  </aside>
+
+  <section class="card" id="before">
+    <h2>A. Before you start (from nothing)</h2>
+
+    <h3>What you will end up with</h3>
+    <ul class="notes">
+      <li>Camera web UI on <strong>http://41.74.144.221:8090</strong> (MJPEG stream, PTZ, login)</li>
+      <li>Optional decoder on host ports <strong>18080</strong> (HTTP) and <strong>18554</strong> (RTSP) when using the <code>real</code> compose profile</li>
+      <li><strong>Grafana untouched</strong> at <code>https://41.74.144.221:8081</code></li>
+    </ul>
+
+    <h3 style="margin-top:1rem">What you need ready</h3>
+    <ul class="ready">
+      <li><strong>V380 device ID:</strong> <code>89370567</code> (already the default in <code>.env.example</code>)</li>
+      <li><strong>Device username:</strong> <code>admin</code> (default)</li>
+      <li><strong>Camera password:</strong> you type it <em>only</em> in the terminal when prompted — never on this page</li>
+      <li><strong>ACCESS_TOKEN:</strong> invent a strong unique secret yourself (used for web UI login). Type it only in the terminal</li>
+    </ul>
+
+    <h3 style="margin-top:1rem">PC requirements</h3>
+    <ul class="notes">
+      <li>Linux or Windows on host <code>41.74.144.221</code></li>
+      <li>Internet access (to pull the repo / images)</li>
+      <li>Ability to open a terminal on that PC (SSH, RDP console, or local)</li>
+    </ul>
+    <h3 style="margin-top:1rem">Tools on the PC</h3>
+    <p class="hint">Prefer Docker with Compose plugin. Or use Git and Node 18+.</p>
+
+    <label class="cmd">Ubuntu / Debian — Docker (preferred)</label>
+    <pre>sudo apt update && sudo apt install -y docker.io docker-compose-v2
+# If docker-compose-v2 is unavailable, try the Compose plugin:
+# sudo apt install -y docker.io docker-compose-plugin
+sudo usermod -aG docker "$USER"   # then log out/in
+docker --version && docker compose version</pre>
+    <label class="cmd">Ubuntu / Debian — Node alternative</label>
+    <pre>sudo apt update && sudo apt install -y git curl
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v   # must be >= 18
+npm -v</pre>
+    <label class="cmd">Windows</label>
+    <pre># Option A (preferred): install Docker Desktop from https://www.docker.com/products/docker-desktop/
+# Option B: install Node.js LTS from https://nodejs.org/ and Git from https://git-scm.com/
+# Then open PowerShell as a normal user on 41.74.144.221</pre>
+  </section>
+
+
+  <section class="card portcheck" id="port-double-check">
+    <h2>Port double-check (mandatory)</h2>
+    <p class="hint">Do this <strong>before</strong> binding and again <strong>after</strong> install. Confirm <strong>8090 is free</strong> before the camera stack binds it, and confirm <strong>8081 is still Grafana</strong>. Live URL <code>http://41.74.144.221:8090</code> is valid <strong>only after</strong> install claims that free port.</p>
+
+    <h3>Before install — confirm 8090 free + 8081 is Grafana</h3>
+    <label class="cmd">Listen summary</label>
+    <pre>ss -ltn | grep -E ':(8081|8090|18080|18554)' || true
+# Expect: something on 8081 (Grafana). Expect: nothing on 8090 (free to claim).</pre>
+    <label class="cmd">Grafana health (must stay OK)</label>
+    <pre>curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
+# Pass: health JSON / OK. Fail: refused — stop and do not reclaim 8081.</pre>
+    <label class="cmd">Optional scripted preflight</label>
+    <pre>bash scripts/safety-check.sh --before
+# or: curl one-shot from README / Step 2</pre>
+
+    <h3 style="margin-top:1rem">After install — confirm camera on 8090, Grafana still on 8081</h3>
+    <label class="cmd">Listen summary again</label>
+    <pre>ss -ltn | grep -E ':(8081|8090|18080|18554)' || true
+# Expect: 8081 still present + 8090 now listening (camera). 18080/18554 if real profile.</pre>
+    <label class="cmd">Grafana still healthy</label>
+    <pre>curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health</pre>
+    <label class="cmd">Camera health on 8090</label>
+    <pre>curl -s http://127.0.0.1:8090/health
+# Pass: JSON ok/status. Then open http://41.74.144.221:8090</pre>
+    <p class="live">http://41.74.144.221:8090</p>
+    <p class="hint" style="margin-top:.75rem">Never bind the camera UI to <code>8081</code>. If 8090 is unexpectedly busy, pick another free port via <code>PORT=</code> — do not displace Grafana.</p>
+  </section>
+
+  <section class="card install" id="install">
+    <h2>B. Installation (step-by-step)</h2>
     <p class="hint">Ports used: web <strong>8090</strong>, decoder HTTP <strong>18080</strong>, RTSP <strong>18554</strong>. Never use <strong>8081</strong> (Grafana).</p>
 
     <ol class="steps">
       <li class="step0">
-        <h3>Step 0 — What stays as-is</h3>
+        <h3>Step 0 — Grafana stays on 8081</h3>
         <p>Leave Grafana alone. Do not stop, rebind, or reclaim port <code>8081</code>.</p>
         <pre>https://41.74.144.221:8081</pre>
         <p>Camera stack will bind <code>0.0.0.0:8090</code> so the LAN/public UI is:</p>
@@ -82,15 +200,15 @@
       </li>
 
       <li>
-        <h3>Step 1 — SSH / open a terminal on that PC</h3>
-        <p>Log into the machine that has IP <code>41.74.144.221</code> (SSH, RDP console, or local terminal).</p>
+        <h3>Step 1 — Open a terminal on 41.74.144.221</h3>
+        <p>SSH, RDP console, or local terminal on the machine with IP <code>41.74.144.221</code>.</p>
         <label class="cmd">Example SSH</label>
         <pre>ssh user@41.74.144.221</pre>
       </li>
 
       <li>
-        <h3>Step 2 — Run safety check (before)</h3>
-        <p>Snapshot Grafana health and list ports <code>8081 / 8090 / 18080 / 18554</code>.</p>
+        <h3>Step 2 — Preflight safety-check (--before) + Port double-check</h3>
+        <p><strong>Before binding:</strong> confirm <code>8090</code> is free and <code>8081</code> is still Grafana. Run <a href="#port-double-check">Port double-check</a> (<code>ss -ltn | grep -E ':(8081|8090|18080|18554)'</code> + Grafana <code>/api/health</code>), then:</p>
         <label class="cmd">If repo already cloned</label>
         <pre>cd ~/v380-web-camera
 bash scripts/safety-check.sh --before</pre>
@@ -103,8 +221,8 @@ bash scripts/safety-check.sh --before</pre>
       </li>
 
       <li>
-        <h3>Step 3 — One-line install</h3>
-        <p>Prefers Docker Compose; falls back to Node.js ≥ 18. Idempotent (safe to re-run). Secrets are entered only in the terminal prompts — never on this page.</p>
+        <h3>Step 3 — Easy one-line install</h3>
+        <p>Prefers Docker Compose; falls back to Node.js ≥ 18. Idempotent (safe to re-run).</p>
         <label class="cmd">Linux / macOS</label>
         <pre>curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash</pre>
         <label class="cmd">Windows PowerShell</label>
@@ -112,24 +230,24 @@ bash scripts/safety-check.sh --before</pre>
       </li>
 
       <li>
-        <h3>Step 4 — Enter camera password + ACCESS_TOKEN</h3>
-        <p>When the installer prompts in the <strong>terminal</strong>:</p>
+        <h3>Step 4 — Terminal prompts for CAMERA_PASSWORD + ACCESS_TOKEN</h3>
+        <p>When the installer prompts in the <strong>terminal</strong> only:</p>
         <ul class="notes">
           <li><strong>CAMERA_PASSWORD</strong> — V380 camera password (needed for real stream / decoder profile)</li>
-          <li><strong>ACCESS_TOKEN</strong> — shared secret for the web UI login (choose a strong unique value)</li>
+          <li><strong>ACCESS_TOKEN</strong> — strong unique secret you invent for web UI login</li>
         </ul>
         <p><strong>Never paste passwords into this website</strong> (or any Pages / docs page). Secrets are written only to <code>~/v380-web-camera/.env</code> on the PC (gitignored). Never commit <code>.env</code>.</p>
       </li>
 
       <li>
-        <h3>Step 5 — Open the live UI</h3>
+        <h3>Step 5 — Open the live UI (after 8090 is claimed)</h3>
         <pre>http://41.74.144.221:8090</pre>
-        <p>Log in with the <code>ACCESS_TOKEN</code> you set. Local-only check: <code>http://127.0.0.1:8090</code>.</p>
+        <p>This URL works <strong>only after</strong> install claims free port <strong>8090</strong>. Log in with the <code>ACCESS_TOKEN</code> you set. Local-only check: <code>http://127.0.0.1:8090</code>.</p>
       </li>
 
       <li>
-        <h3>Step 6 — Post-install safety tests</h3>
-        <p>Confirm Grafana is still healthy, camera <code>/health</code> responds, and ports look right.</p>
+        <h3>Step 6 — Post-install safety tests + Port double-check</h3>
+        <p><strong>After install:</strong> confirm <code>8090</code> serves the camera and <code>8081</code> is still Grafana. Repeat <a href="#port-double-check">Port double-check</a>, then:</p>
         <label class="cmd">Linux</label>
         <pre>bash ~/v380-web-camera/scripts/safety-check.sh --after
 curl -s http://127.0.0.1:8090/health
@@ -152,13 +270,90 @@ sudo ufw status</pre>
     </ol>
   </section>
 
+
+  <section class="card checks" id="checks">
+    <h2>C. Installation and checks</h2>
+    <p class="hint">Full verification checklist. Run on the PC after install. Each item is pass/fail.</p>
+    <ol class="check">
+      <li>
+        <h3>Ports listening <span class="passfail pass">pass</span> / <span class="passfail fail">fail</span></h3>
+        <p><code>8081</code> still up (Grafana). Plus <code>8090</code> (camera UI). Plus <code>18080</code> if using the <code>real</code> profile.</p>
+        <label class="cmd">Linux</label>
+        <pre>ss -ltn | grep -E ':(8081|8090|18080|18554)' || true</pre>
+        <label class="cmd">Windows PowerShell</label>
+        <pre>netstat -an | findstr "8081 8090 18080 18554"</pre>
+      </li>
+      <li>
+        <h3>Grafana health still OK</h3>
+        <pre>curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health</pre>
+      </li>
+      <li>
+        <h3>Camera GET /health on :8090</h3>
+        <pre>curl -s http://127.0.0.1:8090/health
+# Pass: JSON with ok/status and mode "real" or "mock".</pre>
+      </li>
+      <li>
+        <h3>Unauthenticated stream returns 401</h3>
+        <pre>curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8090/stream.mjpg
+# Pass: prints 401.</pre>
+      </li>
+      <li>
+        <h3>Authenticated snapshot / session (Bearer)</h3>
+        <p>Replace <code>YOUR_TOKEN</code> with the ACCESS_TOKEN you set locally — never paste the real value into this site.</p>
+        <pre>curl -s -o /dev/null -w '%{http_code}\n' -H "Authorization: Bearer YOUR_TOKEN" http://127.0.0.1:8090/api/snapshot
+# Pass: 200.
+
+curl -s -H "Authorization: Bearer YOUR_TOKEN" http://127.0.0.1:8090/api/session
+# Pass: JSON session / controls.</pre>
+      </li>
+      <li>
+        <h3>Browser smoke test</h3>
+        <ul class="notes">
+          <li>Open <a href="http://41.74.144.221:8090">http://41.74.144.221:8090</a></li>
+          <li>Log in with <code>ACCESS_TOKEN</code></li>
+          <li>See live feed; try PTZ buttons</li>
+          <li>Confirm feed times out around <strong>~120s</strong> and reconnect works</li>
+        </ul>
+      </li>
+      <li>
+        <h3>safety-check --after must pass</h3>
+        <pre>bash ~/v380-web-camera/scripts/safety-check.sh --after
+# Exits non-zero if Grafana was up before and is down after.</pre>
+      </li>
+      <li>
+        <h3>Done criteria</h3>
+        <div class="done">
+          <strong>Install is complete when:</strong>
+          <ul class="notes">
+            <li>Port <strong>8090</strong> serves the camera UI and <code>/health</code></li>
+            <li>Port <strong>8081</strong> still serves Grafana health</li>
+            <li>You can log in at <code>http://41.74.144.221:8090</code> with your token</li>
+            <li>No real passwords were pasted into Pages / docs</li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+
+  <section class="card alt" id="troubleshoot">
+    <h2>D. Troubleshooting</h2>
+    <ul class="notes">
+      <li><strong>Port busy:</strong> do not steal <code>8081</code>. Change <code>PORT</code> / decoder ports to other free values and re-run the Port double-check.</li>
+      <li><strong>Weak token:</strong> empty / <code>change-me</code> binds <code>127.0.0.1</code> only by default — set a strong <code>ACCESS_TOKEN</code> for LAN/public :8090.</li>
+      <li><strong>No video:</strong> check decoder, camera password (terminal/.env only), and <code>MOCK_CAMERA</code>.</li>
+      <li><strong>Re-run installer:</strong> easy-install is idempotent and safe to re-run after fixing .env.</li>
+      <li><strong>8090 still closed from outside:</strong> open firewall TCP 8090; confirm process listens on <code>0.0.0.0:8090</code>.</li>
+    </ul>
+  </section>
+
   <section class="card alt">
     <h2>Ports (Grafana-safe)</h2>
     <table>
       <thead><tr><th>Service</th><th>Port</th><th>Notes</th></tr></thead>
       <tbody>
         <tr><td>Grafana</td><td><code>8081</code></td><td>Untouched — leave as-is</td></tr>
-        <tr><td>Camera web UI</td><td><code>8090</code></td><td>Live UI + <code>/health</code></td></tr>
+        <tr><td>Camera web UI</td><td><code>8090</code></td><td>Live UI + <code>/health</code> — claim only if free (double-check)</td></tr>
         <tr><td>Decoder HTTP</td><td><code>18080</code></td><td>Published host port (compose <code>real</code>)</td></tr>
         <tr><td>Decoder RTSP</td><td><code>18554</code></td><td>Published host port (compose <code>real</code>)</td></tr>
       </tbody>
@@ -180,8 +375,8 @@ sudo ufw status</pre>
     </table>
   </section>
 
-  <section class="card alt">
-    <h2>Security checklist</h2>
+  <section class="card alt" id="security">
+    <h2>E. Security</h2>
     <ul class="notes">
       <li><strong>Firewall:</strong> open inbound <strong>TCP 8090</strong> only as needed; leave Grafana <code>8081</code> alone. Do not expose decoder <code>18080</code> unless required.</li>
       <li><strong>Strong <code>ACCESS_TOKEN</code></strong> — replace <code>change-me</code> before exposing the UI. Empty / <code>change-me</code> logs a loud startup warning and binds <code>127.0.0.1</code> only (unless you override).</li>
