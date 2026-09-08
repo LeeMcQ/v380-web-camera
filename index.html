@@ -136,7 +136,7 @@
       <li>Internet access (to pull the repo / images)</li>
       <li>Ability to open a terminal on that PC (SSH, RDP console, or local)</li>
     </ul>
-    <h3 style="margin-top:1rem">Tools on the PC</h3>
+    <h3 style="margin-top:1rem">Software to install if missing</h3>
     <p class="hint">Prefer Docker with Compose plugin. Or use Git and Node 18+.</p>
 
     <label class="cmd">Ubuntu / Debian — Docker (preferred)</label>
@@ -240,33 +240,38 @@ bash scripts/safety-check.sh --before</pre>
       </li>
 
       <li>
-        <h3>Step 5 — Open the live UI (after 8090 is claimed)</h3>
-        <pre>http://41.74.144.221:8090</pre>
-        <p>This URL works <strong>only after</strong> install claims free port <strong>8090</strong>. Log in with the <code>ACCESS_TOKEN</code> you set. Local-only check: <code>http://127.0.0.1:8090</code>.</p>
+        <h3>Step 5 — Optional manual path (if one-liner fails)</h3>
+        <label class="cmd">Clone + env</label>
+        <pre>git clone https://github.com/LeeMcQ/v380-web-camera.git
+cd v380-web-camera
+cp .env.example .env
+# Edit .env in the terminal only — set CAMERA_PASSWORD and a strong ACCESS_TOKEN
+# nano .env   # or: notepad .env on Windows</pre>
+        <label class="cmd">Docker Compose (preferred — real camera)</label>
+        <pre>docker compose --profile real up --build -d</pre>
+        <label class="cmd">Node path (decoder must run separately)</label>
+        <pre>npm install
+npm start
+# With MOCK_CAMERA=0 you must also run a V380 decoder reachable at DECODER_URL
+# (default http://127.0.0.1:18080). Compose profile "real" starts both for you.</pre>
       </li>
 
       <li>
-        <h3>Step 6 — Post-install safety tests + Port double-check</h3>
-        <p><strong>After install:</strong> confirm <code>8090</code> serves the camera and <code>8081</code> is still Grafana. Repeat <a href="#port-double-check">Port double-check</a>, then:</p>
-        <label class="cmd">Linux</label>
-        <pre>bash ~/v380-web-camera/scripts/safety-check.sh --after
-curl -s http://127.0.0.1:8090/health
-curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
-ss -ltn | grep -E ':(8081|8090|18080|18554)[[:space:]]' || true</pre>
-        <label class="cmd">Windows PowerShell</label>
-        <pre>.\scripts\safety-check.ps1 -After</pre>
-        <p>Safety check exits non-zero if Grafana was up before and is down after.</p>
-      </li>
-
-      <li>
-        <h3>Step 7 — Firewall note</h3>
-        <p>Allow inbound <strong>TCP 8090</strong> to reach the UI from other devices. Open <strong>TCP 18080</strong> only if you need decoder HTTP from outside the PC (usually not required — web container talks to decoder on the Docker network).</p>
+        <h3>Step 6 — Firewall TCP 8090</h3>
+        <p>Allow inbound <strong>TCP 8090</strong> so other devices can reach the UI. Open <strong>TCP 18080</strong> only if you need decoder HTTP from outside the PC (usually not — the web container talks to the decoder on the Docker network).</p>
         <label class="cmd">ufw example</label>
         <pre>sudo ufw allow 8090/tcp comment 'v380-web-camera'
 # optional: sudo ufw allow 18080/tcp
 sudo ufw status</pre>
         <p>Do <strong>not</strong> change Grafana’s <code>8081</code> firewall rules unless you intend to.</p>
       </li>
+
+      <li>
+        <h3>Step 7 — Open the live UI and log in</h3>
+        <pre>http://41.74.144.221:8090</pre>
+        <p>Log in with the <code>ACCESS_TOKEN</code> you set in the terminal. Local-only check: <code>http://127.0.0.1:8090</code>.</p>
+      </li>
+
     </ol>
   </section>
 
@@ -323,12 +328,15 @@ curl -s -H "Authorization: Bearer YOUR_TOKEN" http://127.0.0.1:8090/api/session
       <li>
         <h3>Done criteria</h3>
         <div class="done">
-          <strong>Install is complete when:</strong>
+          <strong>Install is complete when all of the following are true:</strong>
           <ul class="notes">
-            <li>Port <strong>8090</strong> serves the camera UI and <code>/health</code></li>
-            <li>Port <strong>8081</strong> still serves Grafana health</li>
-            <li>You can log in at <code>http://41.74.144.221:8090</code> with your token</li>
-            <li>No real passwords were pasted into Pages / docs</li>
+            <li>Grafana still healthy on <code>:8081</code></li>
+            <li>Camera UI reachable on <code>http://41.74.144.221:8090</code></li>
+            <li><code>GET /health</code> returns ok (mode real or mock)</li>
+            <li>Unauthenticated <code>/stream.mjpg</code> returns <strong>401</strong></li>
+            <li>Login + live feed + PTZ work in the browser</li>
+            <li><code>safety-check --after</code> exits <strong>0</strong></li>
+            <li>No real passwords / tokens committed or pasted into Pages</li>
           </ul>
         </div>
       </li>
