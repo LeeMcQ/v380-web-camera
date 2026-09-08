@@ -1,13 +1,69 @@
 # V380 Web Camera
 
 > **GitHub Pages is documentation only.** This site / Pages deploy is **not** the live camera.
-> The interactive UI needs Node.js (and V380Decoder for a real camera) on a host you control,
-> typically at `http://YOUR-HOST:3000`.
+> Install on your PC, then open `http://YOUR-PC:8090`.
 
 Self-hosted web UI for a V380 IP camera: live MJPEG, PTZ / light / IR / flip, token auth.
 Camera credentials stay on the server. Clients use `ACCESS_TOKEN` only.
 
 **Repo:** https://github.com/LeeMcQ/v380-web-camera
+
+**Default ports** (avoid Grafana on **8081** and common 8080/8554):
+- Web UI: **8090**
+- V380Decoder HTTP: **18080**
+- V380Decoder RTSP: **18554**
+
+## Easy install
+
+### Linux / macOS
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.sh | bash
+```
+
+### Windows PowerShell
+
+```powershell
+irm https://raw.githubusercontent.com/LeeMcQ/v380-web-camera/main/scripts/easy-install.ps1 | iex
+```
+
+The installer clones/updates to `~/v380-web-camera` (or `$INSTALL_DIR`), creates `.env` from the example, prompts for `CAMERA_PASSWORD` / `ACCESS_TOKEN` if needed, and starts Docker Compose (preferred) or Node. Safe to re-run.
+
+## Same IP as Grafana (do not clash)
+
+On public IP **41.74.144.221**:
+
+| Service | Port |
+|---------|------|
+| **Grafana** (existing) | **8081** — leave alone |
+| V380 Web Camera UI | **8090** |
+| V380Decoder HTTP | **18080** |
+| V380Decoder RTSP | **18554** |
+
+**Final URL:** http://41.74.144.221:8090
+
+### Safety check (anytime)
+
+```bash
+bash scripts/safety-check.sh
+```
+
+```powershell
+powershell -File scripts/safety-check.ps1
+```
+
+Manual checklist:
+
+```bash
+ss -ltn | grep -E ':(8081|8090|18080|18554)[[:space:]]'
+curl -sk https://127.0.0.1:8081/api/health || curl -s http://127.0.0.1:8081/api/health
+curl -s http://127.0.0.1:8090/health
+```
+
+The easy installer runs preflight (ports free + Grafana health) before start and postflight (Grafana still OK + camera /health) after start.
+
+
+After install open `http://YOUR-PC:8090` (or `http://127.0.0.1:8090`). Live MJPEG hard-stops after 120s; the UI reconnects.
 
 ## Features
 
@@ -17,7 +73,7 @@ Camera credentials stay on the server. Clients use `ACCESS_TOKEN` only.
 - Mock MJPEG (`MOCK_CAMERA=1`)
 - Real decoder proxy path (`MOCK_CAMERA=0` + `DECODER_URL`)
 
-## Setup
+## Manual setup
 
 1. **Clone**
    ```bash
@@ -31,10 +87,10 @@ Camera credentials stay on the server. Clients use `ACCESS_TOKEN` only.
 3. **Edit secrets** — set a strong `ACCESS_TOKEN`. For a real camera, set `CAMERA_PASSWORD`, `DEVICE_ID`, and related fields. **Never commit `.env`.**
 4. **Install and start**
    ```bash
-   npm install && npm start
+   npm install && PORT=8090 npm start
    ```
-   Open `http://YOUR-HOST:3000` (default port 3000).
-5. **Real camera** — run [V380Decoder](https://github.com/PyanSofyan/V380Decoder), set `MOCK_CAMERA=0` and `DECODER_URL` (e.g. `http://127.0.0.1:8080`).
+   Open `http://YOUR-HOST:8090`.
+5. **Real camera** — run [V380Decoder](https://github.com/PyanSofyan/V380Decoder), set `MOCK_CAMERA=0` and `DECODER_URL` (e.g. `http://127.0.0.1:18080`).
 
 ### Docker
 
@@ -44,7 +100,7 @@ Mock (no camera / decoder):
 MOCK_CAMERA=1 ACCESS_TOKEN=change-me docker compose up --build
 ```
 
-Real camera (compose profile `real`):
+Real camera (compose profile `real` — publishes decoder on 18080 / 18554):
 
 ```bash
 MOCK_CAMERA=0 CAMERA_PASSWORD=... docker compose --profile real up --build
@@ -52,7 +108,7 @@ MOCK_CAMERA=0 CAMERA_PASSWORD=... docker compose --profile real up --build
 
 ## Env vars
 
-See `.env.example` for `ACCESS_TOKEN`, `PORT`, `STREAM_TIMEOUT_SEC`, `MOCK_CAMERA`, `DECODER_URL`, `DEVICE_ID`, `CAMERA_USERNAME` (default `admin`), `CAMERA_PASSWORD`, `SOURCE`.
+See `.env.example` for `ACCESS_TOKEN`, `PORT` (default 8090), `STREAM_TIMEOUT_SEC`, `MOCK_CAMERA`, `DECODER_URL`, `DEVICE_ID`, `CAMERA_USERNAME` (default `admin`), `CAMERA_PASSWORD`, `SOURCE`, optional `DECODER_HTTP_PORT` / `DECODER_RTSP_PORT`.
 
 Never commit `.env`.
 

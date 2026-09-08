@@ -4,11 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: v380-web-camera
+    # Host 8090 → container 3000 (avoids Grafana on 8081 and common 8080)
     ports:
-      - "${PORT:-3000}:3000"
+      - "0.0.0.0:${PORT:-8090}:3000"
     environment:
       PORT: "3000"
-      MOCK_CAMERA: "${MOCK_CAMERA:-1}"
+      MOCK_CAMERA: "${MOCK_CAMERA:-0}"
+      # Inside the compose network the decoder listens on 8080
       DECODER_URL: "${DECODER_URL:-http://v380decoder:8080}"
       ACCESS_TOKEN: "${ACCESS_TOKEN:-change-me}"
       STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC:-120}"
@@ -23,6 +25,7 @@ services:
   # Optional real-camera bridge. Enable:
   #   MOCK_CAMERA=0 CAMERA_PASSWORD=... docker compose --profile real up --build
   # Image built from https://github.com/PyanSofyan/V380Decoder
+  # Host ports: HTTP 18080, RTSP 18554 (avoids 8080/8081/8554)
   v380decoder:
     profiles: ["real"]
     image: v380decoder:local
@@ -38,8 +41,13 @@ services:
       - "--enable-api"
       - "--enable-mjpeg"
       - "--http-port=8080"
+      - "--rtsp-port=8554"
+    ports:
+      - "0.0.0.0:${DECODER_HTTP_PORT:-18080}:8080"
+      - "0.0.0.0:${DECODER_RTSP_PORT:-18554}:8554"
     expose:
       - "8080"
+      - "8554"
     restart: unless-stopped
     networks:
       - v380net

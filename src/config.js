@@ -6,7 +6,7 @@ function bool(v, fallback = false) {
 }
 
 const config = {
-  port: Number(process.env.PORT || 3000),
+  port: Number(process.env.PORT || 8090),
   accessToken: process.env.ACCESS_TOKEN || '',
   streamTimeoutSec: Number(process.env.STREAM_TIMEOUT_SEC || 120),
   mockCamera: bool(process.env.MOCK_CAMERA, true),
